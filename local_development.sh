@@ -4,8 +4,8 @@ set -e
 
 set_env(){
   export DOCKER_REGISTRY=docker.io
-  export DOCKER_USER=atanasovad
-  export DOCKER_PASSWORD=difince3
+  export DOCKER_USER=<USERNAME>
+  export DOCKER_PASSWORD=<PASSWORD>
   IMAGE=$DOCKER_REGISTRY/$DOCKER_USER/api-server
   TAG=1.1.2
 }
