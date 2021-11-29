@@ -107,7 +107,29 @@ kubectl port-forward -n kubeflow svc/minio-service 9000 &
 kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
 ```
 
-7. Configure `launch.json` to be able to debug in vscode.
+7- A. Create "Run/Debug Configurations" to be able to debug in GoLand IDE:
+```xml
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="APIServer" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="pipelines" />
+    <working_directory value="$PROJECT_DIR$" />
+    <parameters value="--config=$PROJECT_DIR$/backend/src/apiserver/config --sampleconfig=$PROJECT_DIR$/backend/src/apiserver/config/sample_config.json -logtostderr=true" />
+    <envs>
+      <env name="KUBERNETES_SERVICE_HOST" value="127.0.0.1" />
+      <env name="KUBERNETES_SERVICE_PORT" value="8080" />
+      <env name="ML_PIPELINE_VISUALIZATIONSERVER_SERVICE_HOST" value="127.0.0.1" />
+      <env name="ML_PIPELINE_VISUALIZATIONSERVER_SERVICE_PORT" value="8889" />
+    </envs>
+    <kind value="PACKAGE" />
+    <package value="github.com/kubeflow/pipelines/backend/src/apiserver" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/backend/src/apiserver/main.go" />
+    <method v="2" />
+  </configuration>
+</component>
+```
+
+7- B. Configure `launch.json` to be able to debug in vscode.
 ```json
 {
     "version": "0.2.0",
