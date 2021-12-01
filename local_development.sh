@@ -26,7 +26,7 @@ push_img(){
 }
 
 edit_pipeline_deployment(){
-  rm /tmp/mydeployment.yaml
+  rm /tmp/mydeployment.yaml 2> /dev/null
   kubectl get deployment.apps/ml-pipeline -o yaml -n kubeflow > /tmp/mydeployment.yaml
   vi /tmp/mydeployment.yaml
   kubectl apply -f /tmp/mydeployment.yaml -n kubeflow
