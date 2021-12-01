@@ -53,7 +53,7 @@ port_forward(){
 all(){
   build_img
   push_img
-  edit
+  edit_pipeline_deployment
 }
 
 hack(){
