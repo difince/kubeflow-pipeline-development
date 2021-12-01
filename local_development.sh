@@ -40,7 +40,7 @@ print_mgs() {
        push  - Push img
        edit -  Edit the file to be applies
        forward - Expose cluster services locally (8080, mysql post 3306, minio 9000, visualizationserver -> 8888
-       hack - make local code run as in-cluster/ handle sertificates, tokens (need to be done after each computer/cluster restart)"
+       hack - make local code run as in-cluster/ handle certificates, tokens (need to be done after each computer/cluster restart)"
 }
 
 port_forward(){
