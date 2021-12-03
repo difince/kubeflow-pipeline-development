@@ -56,6 +56,7 @@ all(){
   edit_pipeline_deployment
 }
 
+#only in case of Pipeline standalone installation
 hack(){
   sudo mkdir -p /var/run/secrets/kubernetes.io/serviceaccount
 
