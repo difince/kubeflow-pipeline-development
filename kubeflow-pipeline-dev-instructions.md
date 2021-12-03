@@ -1,20 +1,21 @@
 # Kubeflow Pipelines development
 
 Currently API server is not able to run locally as it performs a kubernetes client initialization trying to read in-cluster config rather than load kubeconfig. This limitation is addressed in this [issue](https://github.com/kubeflow/pipelines/issues/4738). Meanwhile for running locally we can follow this guide.
+> Prerequisites: Docker, kustomize, kubectl
 
 ## Provisioning kubernetes cluster with Kubeflow Pipelines
 For development you need a local or remote cluster so Pipelines code can connect to services like MinIO, Mysql and Kubernetes API Server.
 
 For a local Kubernetes cluster, depending on available resources, recommended options are:
+- [Kind](https://kind.sigs.k8s.io/) is a tool for running local Kubernetes clusters using Docker container “nodes”.
 - [MiniKF](https://www.kubeflow.org/docs/started/workstation/getting-started-minikf/). Full-fledged local kubeflow deployment by Arrikto.
 - [K3S](https://k3s.io/). Lightweight and fully functional certified distribution of Kubernetes by Rancher. Alternative to miniKF if RAM or CPU resources are scarce. If using this option, need to install Kubeflow pipelines on top of it.
-  - [Install k3s on Linux/Mac](https://k3s.io/).
-  - [Install k3s on WSL 2](https://github.com/arllanos/tekhno/blob/master/k3s-on-wsl-install.md).
+- [Minikube](https://minikube.sigs.k8s.io/) is a tool for running local Kubernetes clusters using a Hypervisor. - (not tested)
 
-### Install Kubeflow pipelines (If using K3s)
+### Install standalone Kubeflow pipelines 
 > Note: This is a standalone deployment of pipelines. Check updated standalone deployment doc [here](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/).
 ```bash
-export PIPELINE_VERSION=1.0.5
+export PIPELINE_VERSION=1.7.1
 
 kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION"
 
@@ -23,6 +24,16 @@ kubectl wait --for condition=established --timeout=60s crd/applications.app.k8s.
 kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/env/platform-agnostic-pns?ref=$PIPELINE_VERSION"
 
 kubectl get pods -n kubeflow
+```
+### Install the entire Kubeflow
+Clone the `manifest` repository
+```
+mkdir -p ~/workspace && cd ~/workspace;
+git clone git@github.com:kubeflow/manifests.git && cd manifests;
+```
+Install Kubeflow using `kustomize`
+```
+while ! kustomize build example | kubectl apply -f -; do echo "Retrying to apply resources"; sleep 10; done
 ```
 
 ## Backend
@@ -93,6 +104,7 @@ sudo mv  $HOME/samples /
 ```
 
 6. Expose cluster services locally
+- In case Pipeline Standalone installation
 ```bash
 # expose kubernetes API server on localhost
 kubectl proxy --port=8080 &
@@ -107,6 +119,21 @@ kubectl port-forward -n kubeflow svc/minio-service 9000 &
 kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
 ```
 
+> - **NOTE**: In case of Entire Kubeflow installation there are slightly changes in the commands. The list still to be updated.
+```
+kubectl proxy --port=8082 &
+
+kubectl port-forward svc/istio-ingressgateway -n istio-system 8080:80
+
+POD=$(kubectl get pods -n kubeflow -l app=ml-pipeline -o jsonpath='{.items[0].metadata.name}')
+
+kubectl exec -ti $POD -c ml-pipeline-api-server -n kubeflow -- cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt > $HOME/ca.crt
+
+kubectl exec -ti $POD -c ml-pipeline-api-server -n kubeflow -- cat /var/run/secrets/kubernetes.io/serviceaccount/token > $HOME/token
+
+kubectl cp kubeflow/$POD:/samples/ $HOME/samples/ -c ml-pipeline-api-server
+
+```
 7- A. Create "Run/Debug Configurations" to be able to debug in GoLand IDE:
 ```xml
 <component name="ProjectRunConfigurationManager">
