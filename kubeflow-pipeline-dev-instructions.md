@@ -103,8 +103,8 @@ kubectl cp kubeflow/$POD:/samples/ $HOME/samples/
 sudo mv  $HOME/samples /
 ```
 
-6. Expose cluster services locally
-- In case Pipeline Standalone installation
+6-A. Expose cluster services locally
+(in case Pipeline Standalone installation)
 ```bash
 # expose kubernetes API server on localhost
 kubectl proxy --port=8080 &
@@ -119,7 +119,7 @@ kubectl port-forward -n kubeflow svc/minio-service 9000 &
 kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
 ```
 
-> - **NOTE**: In case of Entire Kubeflow installation there are slightly changes in the commands. The list still to be updated.
+6-B **NOTE**: In case of Entire Kubeflow installation there are slightly changes in the commands. The list still to be updated.
 ```
 kubectl proxy --port=8082 &
 
