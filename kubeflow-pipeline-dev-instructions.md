@@ -82,9 +82,13 @@ Optionally change `DBConfig.DBName` and `ObjectStoreConfig.BucketName` to use se
 
 ```
 
-5. Hack so local code run as in-cluster
+5. Hack so local code run as in-cluster 
+
+5-A. Expose cluster services locally
+(in case Pipeline Standalone installation)
 > This need to be repeated after each computer and/or cluster restart
 ```bash
+
 # copy in-cluster service account at /var/run/secrets/kubernetes.io/serviceaccount to local dev
 sudo mkdir -p /var/run/secrets/kubernetes.io/serviceaccount
 
@@ -101,11 +105,7 @@ rm -rf $HOME/samples
 rm -rf /samples
 kubectl cp kubeflow/$POD:/samples/ $HOME/samples/
 sudo mv  $HOME/samples /
-```
 
-6-A. Expose cluster services locally
-(in case Pipeline Standalone installation)
-```bash
 # expose kubernetes API server on localhost
 kubectl proxy --port=8080 &
 
@@ -119,22 +119,43 @@ kubectl port-forward -n kubeflow svc/minio-service 9000 &
 kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
 ```
 
-6-B **NOTE**: In case of Entire Kubeflow installation there are slightly changes in the commands. The list still to be updated.
-```
-kubectl proxy --port=8082 &
+5-B **NOTE**: In case of Entire Kubeflow installation there are slightly changes in the commands. The list still to be updated.
+> This need to be repeated after each computer and/or cluster restart
+```bash
 
-kubectl port-forward svc/istio-ingressgateway -n istio-system 8080:80
+# copy in-cluster service account at /var/run/secrets/kubernetes.io/serviceaccount to local dev
+sudo mkdir -p /var/run/secrets/kubernetes.io/serviceaccount
 
 POD=$(kubectl get pods -n kubeflow -l app=ml-pipeline -o jsonpath='{.items[0].metadata.name}')
 
 kubectl exec -ti $POD -c ml-pipeline-api-server -n kubeflow -- cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt > $HOME/ca.crt
-
 kubectl exec -ti $POD -c ml-pipeline-api-server -n kubeflow -- cat /var/run/secrets/kubernetes.io/serviceaccount/token > $HOME/token
 
+sudo mv $HOME/ca.crt /var/run/secrets/kubernetes.io/serviceaccount
+sudo mv $HOME/token /var/run/secrets/kubernetes.io/serviceaccount
+
+# copy samples to /samples in local dev
+rm -rf $HOME/samples
+rm -rf /samples
 kubectl cp kubeflow/$POD:/samples/ $HOME/samples/ -c ml-pipeline-api-server
+sudo mv  $HOME/samples /
+
+# expose kubernetes API server on localhost
+kubectl proxy --port=8082 &
+
+kubectl port-forward svc/istio-ingressgateway -n istio-system 8080:80 &
+
+# expose mysql
+kubectl port-forward -n kubeflow svc/mysql 3306 &
+
+# expose minio
+kubectl port-forward -n kubeflow svc/minio-service 9000 &
+
+# expose visualization server (note this will listen on 8889 locally)
+kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
 
 ```
-7- A. Create "Run/Debug Configurations" to be able to debug in GoLand IDE:
+6- A. Create "Run/Debug Configurations" to be able to debug in GoLand IDE:
 ```xml
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="APIServer" type="GoApplicationRunConfiguration" factoryName="Go Application">
@@ -156,7 +177,7 @@ kubectl cp kubeflow/$POD:/samples/ $HOME/samples/ -c ml-pipeline-api-server
 </component>
 ```
 
-7- B. Configure `launch.json` to be able to debug in vscode.
+6- B. Configure `launch.json` to be able to debug in vscode.
 ```json
 {
     "version": "0.2.0",
@@ -181,7 +202,7 @@ kubectl cp kubeflow/$POD:/samples/ $HOME/samples/ -c ml-pipeline-api-server
     ]
 }
 ```
-8. You can now debug Pipelines apiserver locally in vscode.
+7. You can now debug Pipelines apiserver locally in vscode.
 
 ### Build and push image
 To build the API server image and upload it to your own **docker hub** on x86_64 machines:
@@ -219,8 +240,18 @@ For other machine architectures or to use gcr.io registry, check [developer_guid
 | cache-deployer-deployment | backend/src/cache/deployer | cache-deployer |
 | cache-server | backend/src/cache | cache-server |
 
+## How to Connect MySQL
+
+>kubectl exec -it -n kubeflow $(kubectl get pods -l app=mysql -o jsonpath='{.items[0].metadata.name}' -n kubeflow) -- /bin/bash
+
+
+>mysql
+
+>show databases;
+
+ 
 ## Frontend
-Follow instructions in frontend/README.md
+Follow instructions in [frontend/README.md](https://github.com/kubeflow/pipelines/blob/master/frontend/README.md)
 Also make sure to do edit `frontend/package.json` and set proxy to hit the right backend api-server port.
 ```json
 "proxy": "http://localhost:8888",
