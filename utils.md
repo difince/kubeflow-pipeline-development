@@ -6,7 +6,7 @@
 
 `curl localhost:8888/apis/v1beta1/pipelines | json_pp`
 
-####GetPipelineByNameAndNamespace
+#### GetPipelineByNameAndNamespace
 `curl -X GET "localhost:8888/apis/v1beta1/namespaces/kubeflow-user-example-com/pipelines/mm" | json_pp`
 
 In case of standalone application or shared pipeline (the pipeline does not belong to specific namespace) the query should look like this:
