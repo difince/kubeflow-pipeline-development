@@ -1,9 +1,9 @@
+#### <i>**Link to the Official [Kubeflow Pipelines API Reference](https://www.kubeflow.org/docs/components/pipelines/reference/api/kubeflow-pipeline-api-spec/)**</i>
+
+
 ## CURL Example Requests
 <i>Note: Not all provided examples could be directly executed. Some depends on external files or keys/names that needs 
 to exist in the local DB. Use these examples just as a reference how the cURLs request could look like.</i>  
-
-[Kubeflow Pipelines API Reference](https://www.kubeflow.org/docs/components/pipelines/reference/api/kubeflow-pipeline-api-spec/)
-
 
 #### List All Pipelines
 
