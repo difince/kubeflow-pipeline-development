@@ -3,7 +3,7 @@
 Currently API server is not able to run locally as it performs a kubernetes client initialization trying to read in-cluster config rather than load kubeconfig. This limitation is addressed in this [issue](https://github.com/kubeflow/pipelines/issues/4738). Meanwhile for running locally we can follow this guide.
 > Prerequisites: Docker, kustomize, kubectl
 
-## Provisioning kubernetes cluster with Kubeflow Pipelines
+## Provisioning kubernetes cluster
 For development you need a local or remote cluster so Pipelines code can connect to services like MinIO, Mysql and Kubernetes API Server.
 
 For a local Kubernetes cluster, depending on available resources, recommended options are:
@@ -13,7 +13,9 @@ For a local Kubernetes cluster, depending on available resources, recommended op
 - [K3S](https://k3s.io/). Lightweight and fully functional certified distribution of Kubernetes by Rancher. Alternative to miniKF if RAM or CPU resources are scarce. If using this option, need to install Kubeflow pipelines on top of it.
 - [Minikube](https://minikube.sigs.k8s.io/) is a tool for running local Kubernetes clusters using a Hypervisor. - (not tested)
 
-### Install standalone Kubeflow pipelines 
+## Install Kubeflow Pipelines 
+On top of the kubernetes cluster Kubeflow Pipelines should be installed. Kubeflow Pipelines could be standalone installed or or as part of the full-fledged Kubeflow installation/deployment.
+### 1. Standalone Kubeflow pipelines 
 > Note: This is a standalone deployment of pipelines. Check updated standalone deployment doc [here](https://www.kubeflow.org/docs/components/pipelines/installation/standalone-deployment/).
 ```bash
 export PIPELINE_VERSION=1.7.1
@@ -26,7 +28,8 @@ kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/env/platform
 
 kubectl get pods -n kubeflow
 ```
-### Install the entire Kubeflow
+
+### 2. Full-fledged Kubeflow
 Clone the `manifest` repository
 ```
 mkdir -p ~/workspace && cd ~/workspace;
@@ -37,21 +40,21 @@ Install Kubeflow using `kustomize`
 while ! kustomize build example | kubectl apply -f -; do echo "Retrying to apply resources"; sleep 10; done
 ```
 
-## Backend
-### Setting up local dev environment for Kubeflow Pipelines
-1. Install Go 1.13.x
+# Setting up local dev environment for Kubeflow Pipelines
+### Backend
+#### 1. Install Go 1.13.x
 
-2. Install dependencies
+#### 2. Install dependencies
 ```
 apt-get update && apt-get install -y cmake clang musl-dev openssl
 ```
 
-3. Compile
+#### 3. Compile
 ```bash
 GO111MODULE=on go build -o bin/apiserver backend/src/apiserver/*.go
 ```
 
-4. Edit `backend/src/apiserver/config/config.json` to point to your dev Mysql and Minio instances.
+#### 4. Edit `backend/src/apiserver/config/config.json` to point to your dev Mysql and Minio instances.
 The following config has been added
 - `DBConfig.Host`
 - `ObjectStoreConfig.Host`
@@ -83,11 +86,13 @@ Optionally change `DBConfig.DBName` and `ObjectStoreConfig.BucketName` to use se
 
 ```
 
-5. Hack so local code run as in-cluster 
+#### 5. Hack so local code run as in-cluster 
+Need to expose cluster services locally, so the local code can connect to services that runs in the cluster as - mysql, minio and etc.
+The commands that expose the cluster service locally slightly differs between KFP standalone installation and full-fledged Kubeflow installation.
+> !!! These commands need to be repeated after each computer and/or cluster restart !!! 
 
-5-A. Expose cluster services locally
-(in case Pipeline Standalone installation)
-> This need to be repeated after each computer and/or cluster restart
+##### 5.1 Pipeline Standalone installation
+
 ```bash
 
 # copy in-cluster service account at /var/run/secrets/kubernetes.io/serviceaccount to local dev
@@ -120,8 +125,7 @@ kubectl port-forward -n kubeflow svc/minio-service 9000 &
 kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
 ```
 
-5-B **NOTE**: In case of Entire Kubeflow installation there are slightly changes in the commands. The list still to be updated.
-> This need to be repeated after each computer and/or cluster restart
+##### 5.2 Full-fledged Kubeflow installation
 ```bash
 
 # copy in-cluster service account at /var/run/secrets/kubernetes.io/serviceaccount to local dev
@@ -156,7 +160,8 @@ kubectl port-forward -n kubeflow svc/minio-service 9000 &
 kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
 
 ```
-6- A. Create "Run/Debug Configurations" to be able to debug in GoLand IDE:
+#### 6 Create "Run/Debug Configurations" in your IDE
+##### 6-1 GoLand IDE:
 ```xml
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="APIServer" type="GoApplicationRunConfiguration" factoryName="Go Application">
@@ -178,7 +183,8 @@ kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
 </component>
 ```
 
-6- B. Configure `launch.json` to be able to debug in vscode.
+##### 6.2 VScode 
+Configure `launch.json` to be able to debug in vscode.
 ```json
 {
     "version": "0.2.0",
@@ -203,9 +209,21 @@ kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
     ]
 }
 ```
-7. You can now debug Pipelines apiserver locally in vscode.
+#### 7. You can now debug Pipelines apiserver locally in vscode.
 
-### Build and push image
+### Backend deployments / images
+
+| NAME | SRC CODE PATH | IMAGE |
+|---|---|---|
+| ml-pipeline | backend/src/apiserver| api-server |
+| ml-pipeline-scheduledworkflow | backend/src/crd/controller/scheduledworkflow | scheduledworkflow |
+| ml-pipeline-viewer-crd | backend/src/crd/controller/viewer | viewer-crd-controller |
+| ml-pipeline-persistenceagent | backend/src/agent/persistence | persistenceagent |
+| ml-pipeline-visualizationserver | backend/src/apiserver/visualization | visualization-server|
+| cache-deployer-deployment | backend/src/cache/deployer | cache-deployer |
+| cache-server | backend/src/cache | cache-server |
+
+# Build and push image
 To build the API server image and upload it to your own **docker hub** on x86_64 machines:
 ```bash
 export DOCKER_REGISTRY=<docker.io|other>
@@ -229,19 +247,7 @@ kubectl get secret -n kubeflow regcred -o jsonpath='{.data}' | sed 's/\.//' | jq
 
 For other machine architectures or to use gcr.io registry, check [developer_guide.md](https://github.com/kubeflow/pipelines/blob/master/developer_guide.md)
 
-## Backend deployments / images
-
-| NAME | SRC CODE PATH | IMAGE |
-|---|---|---|
-| ml-pipeline | backend/src/apiserver| api-server |
-| ml-pipeline-scheduledworkflow | backend/src/crd/controller/scheduledworkflow | scheduledworkflow |
-| ml-pipeline-viewer-crd | backend/src/crd/controller/viewer | viewer-crd-controller |
-| ml-pipeline-persistenceagent | backend/src/agent/persistence | persistenceagent |
-| ml-pipeline-visualizationserver | backend/src/apiserver/visualization | visualization-server|
-| cache-deployer-deployment | backend/src/cache/deployer | cache-deployer |
-| cache-server | backend/src/cache | cache-server |
-
-## How to Connect MySQL
+# How to Connect MySQL
 
 >kubectl exec -it -n kubeflow $(kubectl get pods -l app=mysql -o jsonpath='{.items[0].metadata.name}' -n kubeflow) -- /bin/bash
 
@@ -250,8 +256,8 @@ For other machine architectures or to use gcr.io registry, check [developer_guid
 
 >show databases;
 
- 
-## Frontend
+
+# Frontend
 Follow instructions in [frontend/README.md](https://github.com/kubeflow/pipelines/blob/master/frontend/README.md)
 Also make sure to do edit `frontend/package.json` and set proxy to hit the right backend api-server port.
 ```json
@@ -273,3 +279,4 @@ Also make sure to do edit `frontend/package.json` and set proxy to hit the right
 | minio | | |
 | mysql| | |
 | workflow-controller | | |
+
