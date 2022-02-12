@@ -85,27 +85,27 @@ for i in "$@"
 do
     case $i in
      build)
-        echo "Build image"
+        echo "Build a KFP image"
         build_img
         ;;
      push)
-        echo "Push image"
+        echo "Push the KFP image"
         push_img
         ;;
       edit)
-        echo "add changes"
+        echo "Edit pipeline deployment,so the newly create KFP image to be used in Kubelow cluster"
         edit_pipeline_deployment
         ;;
       forward)
-        echo "port forwarding"
+        echo "Do port forwarding"
         port_forward
         ;;
       all)
-        echo "Build image, push image and apply it"
+        echo "Build, push image and apply a KFP image"
         all
         ;;
       hack)
-        echo "Hack so local code run as in-cluster"
+        echo "Hack so local KFP code run as in-cluster"
         hack
         ;;
       *)
