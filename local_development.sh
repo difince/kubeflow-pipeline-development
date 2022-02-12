@@ -36,10 +36,10 @@ edit_pipeline_deployment(){
 
 print_mgs() {
        echo "Please use one of the available commands:
-       build  - Build img
-       push  - Push img
-       edit -  Edit the file to be applies
-       forward - Expose cluster services locally (8080, mysql post 3306, minio 9000, visualizationserver -> 8888
+       build  - Build a KFP image
+       push  - Push a KFP imgage to DockerHub
+       edit -  Edit pipeline deployment,so the newly create KFP image to be used in Kubelow cluster
+       forward - Expose cluster services locally (8080, mysql port 3306, minio 9000, visualizationserver -> 8888)
        hack - make local code run as in-cluster/ handle certificates, tokens (need to be done after each computer/cluster restart)"
 }
 
