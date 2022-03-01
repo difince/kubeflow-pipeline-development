@@ -256,6 +256,15 @@ For other machine architectures or to use gcr.io registry, check [developer_guid
 
 >show databases;
 
+# How to Connect Minio
+
+Minio provides its own UI to inspect the object store directly:
+
+```
+kubectl port-forward -n ${NAMESPACE} $(kubectl get pods -l app=minio -o jsonpath='{.items[0].metadata.name}' -n ${NAMESPACE}) 9000:9000
+Access Key:minio
+Secret Key:minio123
+```
 
 # Frontend
 Follow instructions in [frontend/README.md](https://github.com/kubeflow/pipelines/blob/master/frontend/README.md)
