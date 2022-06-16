@@ -167,48 +167,28 @@ kubectl port-forward -n kubeflow svc/ml-pipeline-visualizationserver 8889:8888 &
   <configuration default="false" name="APIServer" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="pipelines" />
     <working_directory value="$PROJECT_DIR$" />
-    <parameters value="--config=$PROJECT_DIR$/backend/src/apiserver/config --sampleconfig=$PROJECT_DIR$/backend/src/apiserver/config/sample_config.json -logtostderr=true" />
+    <parameters value="--config=$PROJECT_DIR/backend/src/apiserver/config --sampleconfig=$PROJECT_DIR$/../../../didi/git/pipelines/backend/src/apiserver/config/sample_config.json -logtostderr=true" />
     <envs>
-      <env name="KUBERNETES_SERVICE_HOST" value="127.0.0.1" />
-      <env name="KUBERNETES_SERVICE_PORT" value="8080" />
+      <env name="KUBERNETES_SERVICE_HOST" value="172.19.0.2" />
+      <env name="KUBERNETES_SERVICE_PORT" value="6443" />
       <env name="ML_PIPELINE_VISUALIZATIONSERVER_SERVICE_HOST" value="127.0.0.1" />
       <env name="ML_PIPELINE_VISUALIZATIONSERVER_SERVICE_PORT" value="8889" />
+      <env name="MULTIUSER" value="True" />
+      <env name="MULTIUSER_SHARED_READ" value="False" />
+      <env name="POD_NAMESPACE" value="kubeflow-user-example-com" />
+      <env name="PROJECT_DIR" value="$PROJECT_DIR$/../test-pipelines" />
+      <env name="KUBEFLOW_USERID_HEADER" value="kubeflow-userid" />
+      <env name="KUBEFLOW_USERID_PREFIX" value="" />
     </envs>
-    <kind value="PACKAGE" />
-    <package value="github.com/kubeflow/pipelines/backend/src/apiserver" />
-    <directory value="$PROJECT_DIR$" />
+    <kind value="DIRECTORY" />
+    <package value="github.com/kubeflow/pipelines" />
+    <directory value="$PROJECT_DIR$/backend/src/apiserver" />
     <filePath value="$PROJECT_DIR$/backend/src/apiserver/main.go" />
     <method v="2" />
   </configuration>
 </component>
 ```
 
-##### 6.2 VScode 
-Configure `launch.json` to be able to debug in vscode.
-```json
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Launch",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/backend/src/apiserver",
-            "env": {
-                "KUBERNETES_SERVICE_HOST":"127.0.0.1",
-                "KUBERNETES_SERVICE_PORT": "8080",
-                "ML_PIPELINE_VISUALIZATIONSERVER_SERVICE_HOST": "127.0.0.1",
-                "ML_PIPELINE_VISUALIZATIONSERVER_SERVICE_PORT": "8889"
-            },
-            "args": [
-                "--config=${workspaceFolder}/backend/src/apiserver/config",
-                "--sampleconfig=config/sample_config.json",
-                "-logtostderr=true"]
-        }
-    ]
-}
-```
 #### 7. You can now debug Pipelines apiserver locally in vscode.
 
 ### Backend deployments / images

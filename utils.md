@@ -84,3 +84,15 @@ curl 'http://localhost:8080/pipeline/apis/v1beta1/jobs' \
   --data-raw '{"description":"","name":"JOB","pipeline_spec":{"parameters":[{"name":"message","value":"message"},{"name":"pipeline-root","value":""},{"name":"pipeline-name","value":"pipeline/[Tutorial] V2 lightweight Python components"}]},"resource_references":[{"key":{"id":"5deccaac-0a27-4a2c-835d-b9d3547fd552","type":"EXPERIMENT"},"relationship":"OWNER"},{"key":{"id":"26a73732-73dd-4318-9fe1-96626498466d","type":"PIPELINE_VERSION"},"relationship":"CREATOR"}],"service_account":"","enabled":true,"max_concurrency":"10","no_catchup":false,"trigger":{"periodic_schedule":{"interval_second":"600"}}}' \
   --compressed
 ```
+## Authorize ReportMetrics Endpoint
+```
+kubectl get clusterroles kubeflow-pipelines-edit -o yaml --namespace kubeflow
+kubectl apply -f /home/dianaa/git/pipelines/manifests/kustomize/base/installs/multi-user/view-edit-cluster-roles.yaml  --namespace kubeflow
+curl -X POST 'http://localhost:8080/pipeline/apis/v1beta1/runs/d9c8b540-78a5-475d-8512-6faf83386b50:reportMetrics'    -H 'Cookie: authservice_session=MTY1MzkwMDAzMnxOd3dBTkU0elZFVkJTRFpEVWxWTU5VNUdVRmRWVmxJMVJVMURUbEUxV2tSRlNscFlNbEZHU0ZaR1VVSTFRbFZOVTBGVlMwZzBRbEU9fI-gIj-Zfr6Z4gbCwDAHgzdO4Mcj9P8TisBL9t9W6f8Z'   --compressed -v
+curl -X GET 'http://localhost:8080/pipeline/apis/v1beta1/runs/2cefb81c-1744-475f-abeb-71412a77d881/nodes/file-passing-pipelines-wf8nr-2456930251/artifacts/write-numbers-numbers:read'    -H 'Cookie: authservice_session=MTY1NDE2MTgxMXxOd3dBTkZCVFZVMDNTamRYU2xCWlRsQkxVRUZUUWs0eVNVNVZVVlJGTmpZMlRqUkhXVlZGVlVVMVZVcFBVRWxTUmxoWlUxazNTMUU9fJZ6ni4_QqCTyXMUGQhbPzuShBw2jhbS_COTV57Y_fXM'
+```
+
+## Patch Deployments
+```
+kubectl patch deployment ml-pipeline-persistenceagent --patch-file /home/dianaa/git/pipelines/manifests/kustomize/base/installs/multi-user/persistence-agent/deployment-patch.yaml -n kubeflow
+```
